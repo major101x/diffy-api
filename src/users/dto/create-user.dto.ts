@@ -2,13 +2,18 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
-  @IsEmail()
   @IsNotEmpty()
-  email: string;
+  githubId: string;
+
+  @IsString()
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 
   @IsString()
   @IsNotEmpty()
-  username: string;
+  @IsOptional()
+  username?: string;
 
   @IsOptional()
   @IsString()
@@ -17,4 +22,12 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatarUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  githubAccessToken: string;
+
+  @IsString()
+  @IsNotEmpty()
+  githubRefreshToken: string;
 }
