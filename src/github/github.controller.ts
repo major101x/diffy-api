@@ -72,8 +72,8 @@ export class GithubController {
       );
     }
 
+    console.log(`Webhook with id ${deliveryId} processed successfully`);
     return { status: 'OK' };
-    console.log(req.body);
   }
 
   @Get('pull-request/:owner/:repo/:pull_number')

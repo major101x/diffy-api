@@ -67,7 +67,7 @@ export class GithubService {
     }
     const exists = await this.pullRequestExists(deliveryId);
     if (exists) {
-      console.log('Pull request already exists');
+      console.log(`Pull request with id ${deliveryId} already exists`);
       return { status: 'OK', message: 'Pull request already exists' };
     }
     const pullRequest = await this.prisma.pullRequest.create({
@@ -91,7 +91,6 @@ export class GithubService {
         userId: user.id,
       },
     });
-    console.log(pullRequest);
     return pullRequest;
   }
 
