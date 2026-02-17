@@ -30,15 +30,16 @@ model User {
 }
 
 model PullRequest {
-  id        BigInt      @id
-  number    Int
-  title     String
-  body      String?
-  state     String
-  htmlUrl   String
-  diffUrl   String
-  createdAt DateTime
-  updatedAt DateTime
+  id               BigInt      @id
+  githubDeliveryId String      @unique
+  number           Int
+  title            String
+  body             String?
+  state            String
+  htmlUrl          String
+  diffUrl          String
+  createdAt        DateTime
+  updatedAt        DateTime
 
   // Stats
   commits      Int

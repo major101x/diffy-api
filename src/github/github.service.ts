@@ -26,6 +26,12 @@ export class GithubService {
     });
   }
 
+  private async pullRequestExists(githubDeliveryId: string) {
+    return this.prisma.pullRequest.findUnique({
+      where: { githubDeliveryId },
+    });
+  }
+
   async requestInstallationUrl() {
     const installationUrl = await this.app.getInstallationUrl();
     return installationUrl;
@@ -49,6 +55,7 @@ export class GithubService {
   async handlePullRequest(
     installationId: number,
     payload: EmitterWebhookEvent<'pull_request'>['payload'],
+    deliveryId: string,
   ) {
     const { action, pull_request, sender, repository } = payload;
     if (action !== 'opened') {
@@ -58,9 +65,15 @@ export class GithubService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const exists = await this.pullRequestExists(deliveryId);
+    if (exists) {
+      console.log('Pull request already exists');
+      return { status: 'OK', message: 'Pull request already exists' };
+    }
     const pullRequest = await this.prisma.pullRequest.create({
       data: {
         id: pull_request.id,
+        githubDeliveryId: deliveryId,
         number: pull_request.number,
         title: pull_request.title,
         body: pull_request.body,

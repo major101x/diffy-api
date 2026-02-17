@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -15,6 +16,8 @@ import type { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { UsersService } from 'src/users/users.service';
 import type { AuthenticatedRequest } from 'src/auth/interfaces/user.interface';
+import type { WebhookRequest } from './interfaces/webhook-request.interface';
+import type { EmitterWebhookEvent } from '@octokit/webhooks';
 
 @Controller('github')
 export class GithubController {
@@ -32,14 +35,13 @@ export class GithubController {
 
   @Post('webhook')
   async webhook(
-    @Req() req: Request,
+    @Req() req: WebhookRequest,
     @Headers('x-hub-signature-256') signature: string,
     @Headers('x-github-event') event: string,
+    @Headers('x-github-delivery') deliveryId: string,
   ) {
-    const rawBody = (req as any).rawBody.toString();
-    console.log(rawBody);
-    console.log(signature);
-    console.log(event);
+    if (!req.rawBody) throw new BadRequestException('Missing raw body');
+    const rawBody = req.rawBody.toString();
 
     const isValid = await this.githubService.validateWebhook(
       rawBody,
@@ -51,16 +53,22 @@ export class GithubController {
       return { status: 'ERROR' };
     }
 
+    const installationId = (req.body as { installation: { id: number } })
+      .installation.id;
+
     if (event === 'installation') {
+      const body = req.body as EmitterWebhookEvent<'installation'>['payload'];
       await this.githubService.handleInstallation(
-        req.body.installation.id,
-        req.body.sender.id,
-        req.body.action,
+        installationId,
+        body.sender.id,
+        body.action,
       );
     } else if (event === 'pull_request') {
+      const body = req.body as EmitterWebhookEvent<'pull_request'>['payload'];
       await this.githubService.handlePullRequest(
-        req.body.installation.id,
-        req.body,
+        installationId,
+        body,
+        deliveryId,
       );
     }
 
