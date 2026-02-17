@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,6 +21,14 @@ export class UsersService {
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async getUserInstallationId(githubId: string) {
+    const user = await this.findByGithubId(githubId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.installationId;
   }
 
   async findAll() {

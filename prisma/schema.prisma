@@ -5,9 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-  moduleFormat    = "cjs"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -15,14 +15,42 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  githubId  String   @unique
-  email     String?  @unique
-  username  String?  @unique
-  name      String?
-  avatarUrl String?
+  id                 Int           @id @default(autoincrement())
+  githubId           String        @unique
+  email              String?       @unique
+  username           String?       @unique
+  name               String?
+  avatarUrl          String?
   githubAccessToken  String
   githubRefreshToken String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  installationId     Int?          @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  pullRequests       PullRequest[]
+}
+
+model PullRequest {
+  id        BigInt      @id
+  number    Int
+  title     String
+  body      String?
+  state     String
+  htmlUrl   String
+  diffUrl   String
+  createdAt DateTime
+  updatedAt DateTime
+
+  // Stats
+  commits      Int
+  additions    Int
+  deletions    Int
+  changedFiles Int
+
+  // User/Repo Info (Simplified or Linked)
+  authorName String
+  repoName   String
+
+  // Relations
+  userId Int? // If the author is a user of our app
+  user   User? @relation(fields: [userId], references: [id])
 }
