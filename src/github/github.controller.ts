@@ -78,7 +78,7 @@ export class GithubController {
       });
     }
 
-    console.log(`Webhook with id ${deliveryId} processed successfully`);
+    this.logger.log(`Webhook with id ${deliveryId} received successfully`);
     return { status: 'OK' };
   }
 
