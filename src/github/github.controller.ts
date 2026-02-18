@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Headers,
+  Logger,
   Param,
   Post,
   Redirect,
@@ -18,12 +19,17 @@ import { UsersService } from 'src/users/users.service';
 import type { AuthenticatedRequest } from 'src/auth/interfaces/user.interface';
 import type { WebhookRequest } from './interfaces/webhook-request.interface';
 import type { EmitterWebhookEvent } from '@octokit/webhooks';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Controller('github')
 export class GithubController {
+  private readonly logger = new Logger(GithubController.name);
+
   constructor(
     private readonly githubService: GithubService,
     private readonly userService: UsersService,
+    @InjectQueue('webhook-queue') private webhookQueue: Queue,
   ) {}
 
   @Get('install')
@@ -65,11 +71,11 @@ export class GithubController {
       );
     } else if (event === 'pull_request') {
       const body = req.body as EmitterWebhookEvent<'pull_request'>['payload'];
-      await this.githubService.handlePullRequest(
+      await this.webhookQueue.add('handle-pull-request', {
         installationId,
-        body,
+        payload: body,
         deliveryId,
-      );
+      });
     }
 
     console.log(`Webhook with id ${deliveryId} processed successfully`);

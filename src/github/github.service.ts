@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { App } from 'octokit';
 import type { EmitterWebhookEvent } from '@octokit/webhooks';
 import { UsersService } from 'src/users/users.service';
@@ -6,7 +6,8 @@ import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class GithubService {
-  app: App;
+  private readonly app: App;
+  private readonly logger = new Logger(GithubService.name);
 
   constructor(
     private readonly userService: UsersService,
@@ -58,18 +59,22 @@ export class GithubService {
     deliveryId: string,
   ) {
     const { action, pull_request, sender, repository } = payload;
+
     if (action !== 'opened') {
       return;
     }
+
     const user = await this.userService.findByGithubId(sender.id.toString());
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     const exists = await this.pullRequestExists(deliveryId);
     if (exists) {
-      console.log(`Pull request with id ${deliveryId} already exists`);
+      this.logger.log(`Pull request with id ${deliveryId} already exists`);
       return { status: 'OK', message: 'Pull request already exists' };
     }
+
     const pullRequest = await this.prisma.pullRequest.create({
       data: {
         id: pull_request.id,
