@@ -7,8 +7,6 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma.service';
 import { GithubModule } from './github/github.module';
 import { BullModule } from '@nestjs/bullmq';
-import { PullRequestProcessor } from './github/processors/pull-request.processor';
-import { GithubService } from './github/github.service';
 
 @Module({
   imports: [
@@ -25,7 +23,7 @@ import { GithubService } from './github/github.service';
     GithubModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, PullRequestProcessor, GithubService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {
   constructor() {}
