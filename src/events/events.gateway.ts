@@ -71,10 +71,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { pullRequestId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    // this.server
-    //   .to(`pr:${data.pullRequestId}`)
-    //   .emit('joined', `Joined PR ${data.pullRequestId}`);
-    console.log('Joined PR', data.pullRequestId);
+    this.server
+      .to(`pr:${data.pullRequestId}`)
+      .emit('joined', `Joined PR ${data.pullRequestId}`);
     return data;
   }
 

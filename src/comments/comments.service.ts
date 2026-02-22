@@ -19,11 +19,17 @@ export class CommentsService {
       },
     });
 
-    this.eventsGateway.server
-      .to(`pr:${createCommentDto.pullRequestId}`)
-      .emit('newComment', comment);
+    const serializedComment = {
+      ...comment,
+      id: Number(comment.id),
+      pullRequestId: Number(comment.pullRequestId),
+    };
 
-    return comment;
+    this.eventsGateway.server
+      .to(`pr:${Number(createCommentDto.pullRequestId)}`)
+      .emit('newComment', serializedComment);
+
+    return serializedComment;
   }
 
   findAll(prId: number) {
