@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma.service';
 import { GithubModule } from './github/github.module';
 import { BullModule } from '@nestjs/bullmq';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { BullModule } from '@nestjs/bullmq';
     AuthModule,
     UsersModule,
     GithubModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
