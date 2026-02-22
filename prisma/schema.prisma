@@ -27,11 +27,12 @@ model User {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   pullRequests       PullRequest[]
+  comments           Comment[]
 }
 
 model PullRequest {
-  id               BigInt      @id
-  githubDeliveryId String      @unique
+  id               BigInt   @id
+  githubDeliveryId String   @unique
   number           Int
   title            String
   body             String?
@@ -52,6 +53,24 @@ model PullRequest {
   repoName   String
 
   // Relations
-  userId Int? // If the author is a user of our app
-  user   User? @relation(fields: [userId], references: [id])
+  userId   Int? // If the author is a user of our app
+  user     User?     @relation(fields: [userId], references: [id])
+  comments Comment[]
+}
+
+model Comment {
+  id         BigInt   @id
+  body       String
+  filePath   String
+  lineNumber Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  pullRequestId BigInt
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id])
+
+  // User Info
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
