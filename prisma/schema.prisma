@@ -59,7 +59,7 @@ model PullRequest {
 }
 
 model Comment {
-  id         BigInt   @id
+  id         BigInt   @id @default(autoincrement())
   body       String
   filePath   String
   lineNumber Int
