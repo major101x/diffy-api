@@ -16,8 +16,4 @@ export class CreateCommentDto {
   @IsNotEmpty()
   @IsNumber()
   pullRequestId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  userId: number;
 }

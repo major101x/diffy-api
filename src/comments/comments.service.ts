@@ -7,9 +7,12 @@ import { PrismaService } from 'src/prisma.service';
 export class CommentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCommentDto: CreateCommentDto) {
+  create(createCommentDto: CreateCommentDto, userId: number) {
     return this.prisma.comment.create({
-      data: createCommentDto,
+      data: {
+        ...createCommentDto,
+        userId,
+      },
     });
   }
 
@@ -18,6 +21,9 @@ export class CommentsService {
       where: {
         pullRequestId: prId,
       },
+      include: {
+        user: true,
+      },
     });
   }
 
@@ -25,6 +31,9 @@ export class CommentsService {
     return this.prisma.comment.findUnique({
       where: {
         id,
+      },
+      include: {
+        user: true,
       },
     });
   }

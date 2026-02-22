@@ -6,6 +6,5 @@ export class UpdateCommentDto extends PartialType(
     'lineNumber',
     'filePath',
     'pullRequestId',
-    'userId',
   ] as const),
 ) {}
