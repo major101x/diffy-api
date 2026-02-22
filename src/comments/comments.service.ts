@@ -2,18 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma.service';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
-  create(createCommentDto: CreateCommentDto, userId: number) {
-    return this.prisma.comment.create({
+  async create(createCommentDto: CreateCommentDto, userId: number) {
+    const comment = await this.prisma.comment.create({
       data: {
         ...createCommentDto,
         userId,
       },
     });
+
+    this.eventsGateway.server
+      .to(`pr:${createCommentDto.pullRequestId}`)
+      .emit('newComment', comment);
+
+    return comment;
   }
 
   findAll(prId: number) {
