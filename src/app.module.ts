@@ -8,6 +8,7 @@ import { PrismaService } from './prisma.service';
 import { GithubModule } from './github/github.module';
 import { BullModule } from '@nestjs/bullmq';
 import { EventsModule } from './events/events.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { EventsModule } from './events/events.module';
     UsersModule,
     GithubModule,
     EventsModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

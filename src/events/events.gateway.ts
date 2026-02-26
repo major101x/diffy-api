@@ -30,13 +30,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('join-pr-room')
   async handleJoinPRRoom(
-    @MessageBody() data: { pullRequestId: number },
+    @MessageBody() data: { pullRequestId: number; username: string },
     @ConnectedSocket() client: Socket,
   ) {
     await client.join(`pr:${data.pullRequestId}`);
     client
       .to(`pr:${data.pullRequestId}`)
-      .emit('joined', `User with client id ${client.id} has joined the chat`);
+      .emit('joined', `${data.username} has joined the chat`);
     const clientsInRoom = this.server
       .in(`pr:${data.pullRequestId}`)
       .fetchSockets();
@@ -49,13 +49,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('leave-pr-room')
   async handleLeavePRRoom(
-    @MessageBody() data: { pullRequestId: number },
+    @MessageBody() data: { pullRequestId: number; username: string },
     @ConnectedSocket() client: Socket,
   ) {
     await client.leave(`pr:${data.pullRequestId}`);
     this.server
       .to(`pr:${data.pullRequestId}`)
-      .emit('left', `Left PR ${data.pullRequestId}`);
+      .emit('left', `${data.username} left PR ${data.pullRequestId}`);
     const clientsInRoom = this.server
       .in(`pr:${data.pullRequestId}`)
       .fetchSockets();
@@ -67,22 +67,15 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joined')
-  handleJoined(
-    @MessageBody() data: { pullRequestId: number },
-    @ConnectedSocket() client: Socket,
-  ) {
-    // this.server
-    //   .to(`pr:${data.pullRequestId}`)
-    //   .emit('joined', `Joined PR ${data.pullRequestId}`);
-    console.log('Joined PR', data.pullRequestId);
+  handleJoined(@MessageBody() data: { pullRequestId: number }) {
+    this.server
+      .to(`pr:${data.pullRequestId}`)
+      .emit('joined', `Joined PR ${data.pullRequestId}`);
     return data;
   }
 
   @SubscribeMessage('left')
-  handleLeft(
-    @MessageBody() data: { pullRequestId: number },
-    @ConnectedSocket() client: Socket,
-  ) {
+  handleLeft(@MessageBody() data: { pullRequestId: number }) {
     // this.server
     //   .to(`pr:${data.pullRequestId}`)
     //   .emit('left', `Left PR ${data.pullRequestId}`);
@@ -92,12 +85,37 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('send-message-to-pr-room')
   handleMessage(
-    @MessageBody() data: { message: string; pullRequestId: number },
-    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    data: {
+      message: string;
+      pullRequestId: number;
+      username: string;
+    },
+  ) {
+    this.server.to(`pr:${data.pullRequestId}`).emit('pr-room-message', {
+      message: data.message,
+      username: data.username,
+    });
+    return data;
+  }
+
+  @SubscribeMessage('typing')
+  handleTyping(
+    @MessageBody() data: { pullRequestId: number; username: string },
   ) {
     this.server
       .to(`pr:${data.pullRequestId}`)
-      .emit('pr-room-message', { message: data.message, userId: client.id });
+      .emit('typing', { username: data.username });
+    return data;
+  }
+
+  @SubscribeMessage('stop-typing')
+  handleStopTyping(
+    @MessageBody() data: { pullRequestId: number; username: string },
+  ) {
+    this.server
+      .to(`pr:${data.pullRequestId}`)
+      .emit('stop-typing', { username: data.username });
     return data;
   }
 }

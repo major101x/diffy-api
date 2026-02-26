@@ -21,6 +21,7 @@ export class AuthService {
 
   generateToken(user: JwtPayload) {
     const payload = {
+      id: user.id,
       githubId: user.githubId,
       name: user.name,
     };
