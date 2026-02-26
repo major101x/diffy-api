@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma.service';
 import { EventsGateway } from 'src/events/events.gateway';
+import { serializeComments } from 'src/common/utils/serialize-comments';
 
 @Injectable()
 export class CommentsService {
@@ -17,13 +18,12 @@ export class CommentsService {
         ...createCommentDto,
         userId,
       },
+      include: {
+        user: true,
+      },
     });
 
-    const serializedComment = {
-      ...comment,
-      id: Number(comment.id),
-      pullRequestId: Number(comment.pullRequestId),
-    };
+    const serializedComment = serializeComments(comment);
 
     this.eventsGateway.server
       .to(`pr:${Number(createCommentDto.pullRequestId)}`)
@@ -32,8 +32,8 @@ export class CommentsService {
     return serializedComment;
   }
 
-  findAll(prId: number) {
-    return this.prisma.comment.findMany({
+  async findAll(prId: number) {
+    const comments = await this.prisma.comment.findMany({
       where: {
         pullRequestId: prId,
       },
@@ -41,10 +41,12 @@ export class CommentsService {
         user: true,
       },
     });
+
+    return comments.map(serializeComments);
   }
 
-  findOne(id: number) {
-    return this.prisma.comment.findUnique({
+  async findOne(id: number) {
+    const comment = await this.prisma.comment.findUnique({
       where: {
         id,
       },
@@ -52,22 +54,32 @@ export class CommentsService {
         user: true,
       },
     });
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    return serializeComments(comment);
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return this.prisma.comment.update({
+  async update(id: number, updateCommentDto: UpdateCommentDto) {
+    const comment = await this.prisma.comment.update({
       where: {
         id,
       },
       data: updateCommentDto,
     });
+
+    return serializeComments(comment);
   }
 
-  remove(id: number) {
-    return this.prisma.comment.delete({
+  async remove(id: number) {
+    const comment = await this.prisma.comment.delete({
       where: {
         id,
       },
     });
+
+    return serializeComments(comment);
   }
 }
