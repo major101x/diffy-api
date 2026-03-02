@@ -14,8 +14,8 @@ export class CreateCommentDto {
   lineNumber: number;
 
   @IsNotEmpty()
-  @IsNumber()
-  pullRequestId: number;
+  @IsString()
+  pullRequestId: string;
 
   @IsNumber()
   @IsOptional()

@@ -16,6 +16,7 @@ export class CommentsService {
     const comment = await this.prisma.comment.create({
       data: {
         ...createCommentDto,
+        pullRequestId: BigInt(createCommentDto.pullRequestId),
         userId,
       },
       include: {
