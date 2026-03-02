@@ -73,6 +73,23 @@ export class CommentsService {
     return serializeComments(comment);
   }
 
+  async updateResolved(id: number, resolved: boolean) {
+    const comment = await this.prisma.comment.update({
+      where: {
+        id,
+      },
+      data: { resolved },
+    });
+
+    const serializedComment = serializeComments(comment);
+
+    this.eventsGateway.server
+      .to(`pr:${Number(comment.pullRequestId)}`)
+      .emit('updateComment', serializedComment);
+
+    return serializedComment;
+  }
+
   async remove(id: number) {
     const comment = await this.prisma.comment.delete({
       where: {
