@@ -73,4 +73,10 @@ model Comment {
   // User Info
   userId Int
   user   User @relation(fields: [userId], references: [id])
+
+  // Threads
+  resolved        Boolean   @default(false)
+  parentCommentId BigInt?
+  parentComment   Comment?  @relation("Thread", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("Thread")
 }
