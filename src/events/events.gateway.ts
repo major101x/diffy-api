@@ -31,19 +31,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('join-pr-room')
   async handleJoinPRRoom(
     @MessageBody() data: { pullRequestId: number; username: string },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: Socket<any, any, any, { username: string }>,
   ) {
     await client.join(`pr:${data.pullRequestId}`);
     client
       .to(`pr:${data.pullRequestId}`)
       .emit('joined', `${data.username} has joined the chat`);
+    client.data.username = data.username;
     const clientsInRoom = this.server
       .in(`pr:${data.pullRequestId}`)
       .fetchSockets();
-    const userCount = (await clientsInRoom).length;
+    const users = (await clientsInRoom).map(
+      (client: { data: { username: string } }) => client.data.username,
+    );
+    const userCount = users.length;
     this.server
       .to(`pr:${data.pullRequestId}`)
       .emit('user-count', { userCount });
+    this.server.to(`pr:${data.pullRequestId}`).emit('active-users', users);
     return data;
   }
 
@@ -59,10 +64,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const clientsInRoom = this.server
       .in(`pr:${data.pullRequestId}`)
       .fetchSockets();
-    const userCount = (await clientsInRoom).length;
+    const users = (await clientsInRoom).map(
+      (client: { data: { username: string } }) => client.data.username,
+    );
+    const userCount = users.length;
     this.server
       .to(`pr:${data.pullRequestId}`)
       .emit('user-count', { userCount });
+    this.server.to(`pr:${data.pullRequestId}`).emit('active-users', users);
     return data;
   }
 
