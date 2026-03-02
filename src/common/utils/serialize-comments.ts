@@ -5,5 +5,8 @@ export function serializeComments(comment: Comment) {
     ...comment,
     id: Number(comment.id),
     pullRequestId: Number(comment.pullRequestId),
+    parentCommentId: comment.parentCommentId
+      ? Number(comment.parentCommentId)
+      : null,
   };
 }
