@@ -28,6 +28,18 @@ export class CommentsController {
     return this.commentsService.create(createCommentDto, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/resolve')
+  resolve(@Param('id') id: string) {
+    return this.commentsService.updateResolved(+id, true);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/unresolve')
+  unresolve(@Param('id') id: string) {
+    return this.commentsService.updateResolved(+id, false);
+  }
+
   @Get('pr/:prId')
   findAll(@Param('prId') prId: string) {
     return this.commentsService.findAll(+prId);
