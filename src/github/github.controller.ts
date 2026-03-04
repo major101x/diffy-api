@@ -82,6 +82,32 @@ export class GithubController {
     return { status: 'OK' };
   }
 
+  @Get('repos')
+  @UseGuards(JwtAuthGuard)
+  async getRepos(@Req() req: AuthenticatedRequest) {
+    const installationId = await this.userService.getUserInstallationId(
+      req.user.githubId,
+    );
+    return this.githubService.getRepos(Number(installationId));
+  }
+
+  @Get('pull-requests/:owner/:repo')
+  @UseGuards(JwtAuthGuard)
+  async getOpenPullRequestsInRepo(
+    @Req() req: AuthenticatedRequest,
+    @Param('owner') owner: string,
+    @Param('repo') repo: string,
+  ) {
+    const installationId = await this.userService.getUserInstallationId(
+      req.user.githubId,
+    );
+    return this.githubService.getOpenPullRequestsInRepo(
+      owner,
+      repo,
+      Number(installationId),
+    );
+  }
+
   @Get('pull-request/:owner/:repo/:pull_number')
   @UseGuards(JwtAuthGuard)
   async getPullRequest(

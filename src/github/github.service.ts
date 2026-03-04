@@ -124,6 +124,44 @@ export class GithubService {
     return installations.data;
   }
 
+  async getRepos(installationId: number) {
+    const octokit = await this.app.getInstallationOctokit(installationId);
+    const response = await octokit.request('GET /installation/repositories', {
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+        accept: 'application/vnd.github+json',
+      },
+    });
+
+    const data = response.data.repositories.map((repo) => {
+      return {
+        name: repo.name,
+        owner: repo.owner.login,
+        id: repo.id,
+      };
+    });
+
+    return data;
+  }
+
+  async getOpenPullRequestsInRepo(
+    owner: string,
+    repo: string,
+    installationId: number,
+  ) {
+    const octokit = await this.app.getInstallationOctokit(installationId);
+    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
+      owner: owner,
+      repo: repo,
+      state: 'open',
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+        accept: 'application/vnd.github.text+json',
+      },
+    });
+    return response.data;
+  }
+
   async getPullRequest(
     owner: string,
     repo: string,
