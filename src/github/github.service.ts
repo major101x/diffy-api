@@ -138,6 +138,7 @@ export class GithubService {
         name: repo.name,
         owner: repo.owner.login,
         id: repo.id,
+        link: repo.html_url,
       };
     });
 
@@ -153,13 +154,28 @@ export class GithubService {
     const response = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
       owner: owner,
       repo: repo,
-      state: 'open',
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
         accept: 'application/vnd.github.text+json',
       },
     });
-    return response.data;
+
+    const data = response.data.map((pr) => {
+      return {
+        title: pr.title,
+        number: pr.number,
+        authorName: pr.user?.login,
+        id: pr.id,
+        state: pr.state,
+        htmlUrl: pr.html_url,
+        base: pr.base.ref,
+        head: pr.head.ref,
+        createdAt: pr.created_at,
+        updatedAt: pr.updated_at,
+      };
+    });
+
+    return data;
   }
 
   async getPullRequest(
