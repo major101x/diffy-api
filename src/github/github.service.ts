@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { App } from 'octokit';
 import type { EmitterWebhookEvent } from '@octokit/webhooks';
 import { UsersService } from 'src/users/users.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GithubService {
