@@ -124,13 +124,15 @@ export class GithubService {
     return installations.data;
   }
 
-  async getRepos(installationId: number) {
+  async getRepos(installationId: number, page: number, perPage: number) {
     const octokit = await this.app.getInstallationOctokit(installationId);
     const response = await octokit.request('GET /installation/repositories', {
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
         accept: 'application/vnd.github+json',
       },
+      page: page,
+      per_page: perPage,
     });
 
     const data = response.data.repositories.map((repo) => {
@@ -142,22 +144,27 @@ export class GithubService {
       };
     });
 
-    return data;
+    return { data, totalCount: response.data.total_count };
   }
 
   async getOpenPullRequestsInRepo(
     owner: string,
     repo: string,
     installationId: number,
+    page: number,
+    perPage: number,
   ) {
     const octokit = await this.app.getInstallationOctokit(installationId);
     const response = await octokit.request('GET /repos/{owner}/{repo}/pulls', {
       owner: owner,
       repo: repo,
+      state: 'open',
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
         accept: 'application/vnd.github.text+json',
       },
+      page: page,
+      per_page: perPage,
     });
 
     const data = response.data.map((pr) => {
@@ -165,6 +172,8 @@ export class GithubService {
         title: pr.title,
         number: pr.number,
         authorName: pr.user?.login,
+        repo: pr.head.repo.name,
+        owner: pr.head.repo.owner.login,
         id: pr.id,
         state: pr.state,
         htmlUrl: pr.html_url,
@@ -175,7 +184,7 @@ export class GithubService {
       };
     });
 
-    return data;
+    return { data, totalCount: response.data.length };
   }
 
   async getPullRequest(
