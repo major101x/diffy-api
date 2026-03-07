@@ -43,12 +43,19 @@ export class GithubService {
     senderId: number,
     action: string,
   ) {
+    if (action === 'deleted') {
+      const user = await this.userService.findByGithubId(senderId.toString());
+      if (!user) {
+        return 'User not found';
+      }
+      await this.userService.update(user.id, { installationId: null });
+    }
     if (action !== 'created') {
       return;
     }
     const user = await this.userService.findByGithubId(senderId.toString());
     if (!user) {
-      throw new NotFoundException('User not found');
+      return 'User not found';
     }
     await this.userService.update(user.id, { installationId: installationId });
   }
