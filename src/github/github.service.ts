@@ -142,7 +142,11 @@ export class GithubService {
       per_page: perPage,
     });
 
-    const data = response.data.repositories.map((repo) => {
+    const sortedRepositories = [...response.data.repositories].sort((a, b) =>
+      (b.updated_at || '0').localeCompare(a.updated_at || '0'),
+    );
+
+    const data = sortedRepositories.map((repo) => {
       return {
         name: repo.name,
         owner: repo.owner.login,
