@@ -130,6 +130,7 @@ export class GithubController {
     );
     return this.githubService.getPullRequest(
       owner,
+      req.user.id,
       repo,
       pull_number,
       Number(installationId),

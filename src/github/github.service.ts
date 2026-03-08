@@ -200,6 +200,7 @@ export class GithubService {
 
   async getPullRequest(
     owner: string,
+    userId: number,
     repo: string,
     pull_number: number,
     installationId: number,
@@ -217,6 +218,34 @@ export class GithubService {
         },
       },
     );
+
+    const pull_request = response.data;
+
+    await this.prisma.pullRequest.upsert({
+      where: {
+        id: pull_request.id,
+      },
+      create: {
+        id: pull_request.id,
+        number: pull_request.number,
+        title: pull_request.title,
+        body: pull_request.body,
+        state: pull_request.state,
+        htmlUrl: pull_request.html_url,
+        diffUrl: pull_request.diff_url,
+        createdAt: pull_request.created_at,
+        updatedAt: pull_request.updated_at,
+        commits: pull_request.commits,
+        additions: pull_request.additions,
+        deletions: pull_request.deletions,
+        changedFiles: pull_request.changed_files,
+        authorName: pull_request.user.login,
+        repoName: repo,
+        userId: userId,
+      },
+      update: {},
+    });
+
     return response.data;
   }
 

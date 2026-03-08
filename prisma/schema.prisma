@@ -32,7 +32,7 @@ model User {
 
 model PullRequest {
   id               BigInt   @id
-  githubDeliveryId String   @unique
+  githubDeliveryId String?   @unique
   number           Int
   title            String
   body             String?
