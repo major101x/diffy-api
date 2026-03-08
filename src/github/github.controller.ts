@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Post,
+  Query,
   Redirect,
   Req,
   Res,
@@ -82,6 +83,40 @@ export class GithubController {
     return { status: 'OK' };
   }
 
+  @Get('repos')
+  @UseGuards(JwtAuthGuard)
+  async getRepos(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page: number,
+    @Query('per_page') perPage: number,
+  ) {
+    const installationId = await this.userService.getUserInstallationId(
+      req.user.githubId,
+    );
+    return this.githubService.getRepos(Number(installationId), page, perPage);
+  }
+
+  @Get('pull-requests/:owner/:repo')
+  @UseGuards(JwtAuthGuard)
+  async getOpenPullRequestsInRepo(
+    @Req() req: AuthenticatedRequest,
+    @Param('owner') owner: string,
+    @Param('repo') repo: string,
+    @Query('page') page: number,
+    @Query('per_page') perPage: number,
+  ) {
+    const installationId = await this.userService.getUserInstallationId(
+      req.user.githubId,
+    );
+    return this.githubService.getOpenPullRequestsInRepo(
+      owner,
+      repo,
+      Number(installationId),
+      page,
+      perPage,
+    );
+  }
+
   @Get('pull-request/:owner/:repo/:pull_number')
   @UseGuards(JwtAuthGuard)
   async getPullRequest(
@@ -95,6 +130,7 @@ export class GithubController {
     );
     return this.githubService.getPullRequest(
       owner,
+      req.user.id,
       repo,
       pull_number,
       Number(installationId),

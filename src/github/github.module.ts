@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { GithubService } from './github.service';
 import { GithubController } from './github.controller';
 import { UsersModule } from 'src/users/users.module';
-import { PrismaService } from '../prisma.service';
 import { BullModule } from '@nestjs/bullmq';
 import { PullRequestProcessor } from './processors/pull-request.processor';
 
@@ -14,6 +13,6 @@ import { PullRequestProcessor } from './processors/pull-request.processor';
     }),
   ],
   controllers: [GithubController],
-  providers: [GithubService, PrismaService, PullRequestProcessor],
+  providers: [GithubService, PullRequestProcessor],
 })
 export class GithubModule {}
