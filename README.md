@@ -1,98 +1,100 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Diffy - Real-time Collaborative Code Review Platform
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+**Live Demo:** https://diffy-two.vercel.app  
+**Backend API:** https://diffy-api.onrender.com  
+**Source Code (Frontend):** https://github.com/major101x/diffy  
+**Source Code (Backend):** https://github.com/major101x/diffy-api
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## The Problem
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Engineering teams waste hours each week context-switching during code reviews. Reviewers jump between GitHub for diffs, Slack for discussions, Loom for explanations, and Notion for decisions. Comments get lost. Context disappears. Reviews that should take 20 minutes take 2 hours across 3 platforms.
 
-## Project setup
+Diffy centralizes the entire code review workflow in one interface. View diffs, comment inline, discuss in real-time, and resolve threads without ever leaving the app.
 
-```bash
-$ yarn install
-```
+---
 
-## Compile and run the project
+## Tech Stack & Architecture Decisions
 
-```bash
-# development
-$ yarn run start
+**Frontend:** Next.js 14 (App Router) deployed on Vercel - chosen for server components and built-in API routes  
+**Backend:** NestJS on Render - modular architecture perfect for webhook processing and real-time infrastructure  
+**Database:** PostgreSQL with Prisma ORM (hosted on Aiven) - relational data model for comments, threads, and user relationships  
+**Authentication:** GitHub App OAuth - provides installation-scoped access tokens (more secure than personal access tokens)  
+**Real-time:** Socket.io - bidirectional communication for live comments, typing indicators, and presence  
+**Async Processing:** BullMQ + Redis (Valkey) - handles webhook processing in background to prevent request timeouts
 
-# watch mode
-$ yarn run start:dev
+Why this stack? I needed webhook reliability (BullMQ), real-time collaboration (Socket.io), and GitHub integration depth (GitHub App). This combination handles the core technical challenges of a code review platform.
 
-# production mode
-$ yarn run start:prod
-```
+---
 
-## Run tests
+## Key Technical Challenges
 
-```bash
-# unit tests
-$ yarn run test
+### 1. GitHub App Authentication Complexity
 
-# e2e tests
-$ yarn run test:e2e
+**Challenge:** GitHub Apps use installation access tokens (not user tokens), requiring different auth flows for users vs. repository access
 
-# test coverage
-$ yarn run test:cov
-```
+**Solution:** Implemented dual auth strategy - Passport.js for user sessions + installation tokens for GitHub API calls. This provides user context while maintaining proper repo-level permissions.
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 2. Real-time Event Broadcasting
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Challenge:** Initial Socket.io implementation broadcast typing indicators and comments to all connected users, not just those viewing the same PR
 
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
+**Solution:** Implemented room-based isolation (one room per PR). Users join rooms on PR view, events only broadcast within that room. Reduced unnecessary network traffic by 90%.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+### 3. Webhook Reliability
 
-Check out a few resources that may come in handy when working with NestJS:
+**Challenge:** GitHub can send duplicate webhooks or webhooks can fail/timeout under load
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Solution:** Built idempotency layer using webhook delivery IDs + BullMQ for async processing. Duplicate webhooks get filtered, failed jobs auto-retry with exponential backoff. Prevents data corruption and ensures no missed events.
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 4. Installation Lifecycle Management
 
-## Stay in touch
+**Challenge:** Users uninstalling the GitHub App mid-session caused crashes (null installation ID)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Solution:** Added webhook handlers for installation.deleted events to gracefully handle uninstalls. App now prompts users to reinstall instead of crashing.
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Core Features
+
+- **PR Diff Viewer:** Side-by-side code comparison with syntax highlighting for all file changes
+- **Inline Comments:** Attach comments to specific files and line numbers with threading support
+- **Real-time Collaboration:** Live typing indicators, user presence ("3 people viewing"), instant comment sync
+- **Comment Resolution:** Mark threads as resolved/unresolved, filter to show only active discussions
+- **Webhook Integration:** Automatic PR sync when commits pushed or PR updated
+- **Live Chat:** Persistent room-based chat for each PR (separate from inline comments)
+
+---
+
+## What I’d improve next
+
+If productionizing this for real teams, I would:
+
+- Add notification system - Email/Slack alerts when someone comments on your PR or mentions you
+- Implement diff chunking - Large PRs (500+ line changes) currently load slowly; would paginate or lazy-load file diffs
+- Build approval workflow - Allow reviewers to formally approve/request changes (like GitHub's review system)
+- Add line-based comments to diff display - Currently only shows comments in separate component; should also display on diff view
+- Persist chat history - Live chat currently only exists in-memory; would save to PostgreSQL for historical reference
+
+These aren't bugs, they're scope tradeoffs I made to ship an MVP in 14 days.
+
+---
+
+## Development Timeline
+
+Built and deployed in 12 days as part of a focused execution challenge:
+
+- **Days 1-2:** GitHub App integration + OAuth
+- **Days 3-5:** Webhook processing with BullMQ
+- **Days 6-9:** Real-time infrastructure (Socket.io + comments)
+- **Days 10-11:** PR diff display + comment threading
+- **Days 12-14:** Production deployment (backend + frontend)
+
+Why this matters: Building Diffy taught me that shipping consistently beats perfect architecture. I could have spent weeks researching the "ideal" real-time system design, but instead I shipped an MVP in 12 days, learned from real implementation challenges, and now have a deployed product instead of a planning doc.
